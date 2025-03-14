@@ -5,7 +5,25 @@ import { execSync } from "child_process";
 import chalk from "chalk";
 import { generateTemplates } from "./templates/index.js";
 
+/**
+ * Initializes a new backend project by prompting the user for configuration options,
+ * generating project files, and installing dependencies.
+ *
+ * The function uses `inquirer` to gather user input, `fs-extra` to create the project directory,
+ * and `generateTemplates` to scaffold the project structure. It also installs necessary
+ * dependencies based on the user's choices.
+ */
 export async function initProject() {
+  /**
+   * Prompts the user for project configuration details using `inquirer`.
+   * @type {Object} answers - User responses to prompts.
+   * @property {string} projectName - The name of the project.
+   * @property {string} language - The programming language (JavaScript or TypeScript).
+   * @property {string} packageManager - The preferred package manager (npm, yarn, or pnpm).
+   * @property {string} database - The database choice (MongoDB, MySQL, PostgreSQL, or None).
+   * @property {boolean} includeAuth - Whether to include JWT authentication.
+   * @property {boolean} includeLog - Whether to include Winston and Morgan logging.
+   */
   const answers = await inquirer.prompt([
     {
       type: "input",
@@ -46,10 +64,21 @@ export async function initProject() {
     },
   ]);
 
+  /**
+   * Creates the project directory in the current working directory.
+   * @type {string} projectPath - Absolute path to the project directory.
+   */
   const projectPath = path.join(process.cwd(), answers.projectName);
   await fs.ensureDir(projectPath);
 
   console.log(chalk.yellow(`\n📝 Creating project folder: ${answers.projectName}...`));
+  
+  /**
+   * Generates project files and templates based on user input.
+   * @function generateTemplates
+   * @param {Object} answers - User responses to prompts.
+   * @param {string} projectPath - Path to the project directory.
+   */
   await generateTemplates(answers, projectPath);
 
   console.log(chalk.green("\n✅ Project successfully created!"));
@@ -60,7 +89,10 @@ export async function initProject() {
   console.log(chalk.cyan("\n▶️ Start the project:"));
   console.log(chalk.magenta(`   ${answers.packageManager} start`));
 
-  // Combine all dependencies into a single array
+  /**
+   * Defines the base dependencies required for the project.
+   * @type {string[]} baseDependencies - Common dependencies for all projects.
+   */
   const baseDependencies = [
     "express",
     "dotenv",
@@ -69,6 +101,10 @@ export async function initProject() {
     "helmet",
   ];
 
+  /**
+   * Defines development dependencies based on the selected language.
+   * @type {string[]} devDependencies - Development tools and libraries.
+   */
   const devDependencies = [
     "nodemon",
     "eslint",
@@ -77,6 +113,10 @@ export async function initProject() {
       : []),
   ];
 
+  /**
+   * Maps database choices to their respective dependencies.
+   * @type {Object} dbDependencies - Database-specific dependencies.
+   */
   const dbDependencies = {
     MongoDB: ["mongoose"],
     MySQL: ["mysql2", "sequelize"],
@@ -84,23 +124,37 @@ export async function initProject() {
     None: [],
   };
 
+  /**
+   * Defines feature-specific dependencies based on user choices.
+   * @type {string[]} featureDependencies - Optional dependencies for JWT auth and logging.
+   */
   const featureDependencies = [];
   if (answers.includeAuth) featureDependencies.push("jsonwebtoken", "bcryptjs");
   if (answers.includeLog) featureDependencies.push("winston", "morgan");
 
-  // Combine all dependencies
+  /**
+   * Combines all dependencies into a single array for installation.
+   * @type {string[]} allDependencies - All runtime dependencies for the project.
+   */
   const allDependencies = [
     ...baseDependencies,
     ...dbDependencies[answers.database],
     ...featureDependencies,
   ];
 
-  // Combine all devDependencies
+  /**
+   * Combines all development dependencies into a single array for installation.
+   * @type {string[]} allDevDependencies - All development dependencies for the project.
+   */
   const allDevDependencies = [...devDependencies];
 
   // Install all dependencies in one command
   console.log(chalk.yellow("\n📦 Installing dependencies..."));
   try {
+    /**
+     * Constructs and executes the dependency installation command.
+     * @type {string} installCommand - Command to install dependencies using the chosen package manager.
+     */
     const installCommand = `${answers.packageManager} install ${allDependencies.join(" ")} ${allDevDependencies.map(dep => `-D ${dep}`).join(" ")}`;
     execSync(installCommand, {
       stdio: "inherit",
