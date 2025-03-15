@@ -2,23 +2,6 @@ import fs from "fs-extra";
 import path from "path";
 
 export async function generatePackageJson(answers, projectPath) {
-  const dependencies = ["express", "dotenv", "cors", "cookie-parser", "helmet"];
-  const devDependencies = ["nodemon", "eslint"];
-
-  if (answers.language === "TypeScript") {
-    devDependencies.push("typescript", "ts-node", "@types/node", "@types/express");
-  }
-
-  if (answers.database === "MongoDB") dependencies.push("mongoose");
-  if (["MySQL", "PostgreSQL"].includes(answers.database)) {
-    dependencies.push("sequelize");
-    if (answers.database === "MySQL") dependencies.push("mysql2");
-    if (answers.database === "PostgreSQL") dependencies.push("pg", "pg-hstore");
-  }
-
-  if (answers.includeAuth) dependencies.push("jsonwebtoken", "bcryptjs");
-  if (answers.includeLog) dependencies.push("winston", "morgan");
-
   const packageJson = {
     name: answers.projectName,
     version: "1.0.0",
