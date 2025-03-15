@@ -19,11 +19,11 @@ const UserSchema: Schema = new Schema({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-});
+}, { timestamps: true });
 
 const User = mongoose.model<IUser>("User", UserSchema);
 export default User;
-`
+`.trim()
       : `
 const mongoose = require("mongoose");
 
@@ -31,18 +31,28 @@ const UserSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-});
+}, { timestamps: true });
 
 const User = mongoose.model("User", UserSchema);
 module.exports = User;
-`;
-  } else if (answers.database === "MySQL" || answers.database === "PosgreSQL") {
+`.trim();
+  } else if (answers.database === "MySQL" || answers.database === "PostgreSQL") {
     userModel = answers.language === "TypeScript"
       ? `
-import { DataTypes, Model } from "sequelize";
-import { sequelize } from "../config/dbConfig";
+import { DataTypes, Model, Optional } from "sequelize";
+import db from "../config/dbConfig";
 
-class User extends Model {
+interface UserAttributes {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+}
+
+interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
+
+class User extends Model<UserAttributes, UserCreationAttributes> 
+  implements UserAttributes {
   public id!: number;
   public username!: string;
   public email!: string;
@@ -51,41 +61,79 @@ class User extends Model {
 
 User.init(
   {
-    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    username: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false },
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
+    },
+    username: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false
+    }
   },
   {
-    sequelize,
+    sequelize: db.connection,
+    modelName: "User",
     tableName: "users",
+    timestamps: true
   }
 );
 
 export default User;
-`
+`.trim()
       : `
 const { DataTypes, Model } = require("sequelize");
-const { sequelize } = require("../config/dbConfig");
+const db = require("../config/dbConfig");
 
 class User extends Model {}
 
 User.init(
   {
-    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    username: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false },
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
+    },
+    username: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false
+    }
   },
   {
-    sequelize,
+    sequelize: db.connection,
+    modelName: "User",
     tableName: "users",
+    timestamps: true
   }
 );
 
 module.exports = User;
-`;
+`.trim();
   }
 
-  await fs.writeFile(path.join(projectPath, `src/models/User.${ext}`), userModel);
+  // Ensure models directory exists
+  await fs.ensureDir(path.join(projectPath, "src/models"));
+  
+  await fs.writeFile(
+    path.join(projectPath, `src/models/User.${ext}`),
+    userModel
+  );
 }
