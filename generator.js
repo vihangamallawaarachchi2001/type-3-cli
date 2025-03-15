@@ -93,10 +93,8 @@ export async function initProject() {
     console.log(chalk.green("\n✅ Project successfully created!"));
     console.log(chalk.cyan("\n📁 Navigate into your project:"));
     console.log(chalk.magenta(`   cd ${answers.projectName}`));
-    console.log(chalk.cyan("\n📦 Install dependencies:"));
-    console.log(chalk.magenta(`   ${answers.packageManager} install`));
     console.log(chalk.cyan("\n▶️ Start the project:"));
-    console.log(chalk.magenta(`   ${answers.packageManager} start`));
+    console.log(chalk.magenta(`   ${answers.packageManager} run dev`));
 
     /**
      * Defines the base dependencies required for the project.
