@@ -1,52 +1,155 @@
 import fs from "fs-extra";
 import path from "path";
 
-export async function generateServerFile(answers, projectPath, ext) {
-  const serverContent = answers.language === "TypeScript"
+/**
+ * Generates main server file with all integrations
+ * @param {Object} answers - User configuration object
+ * @param {string} projectPath - Project root directory path
+ * @param {string} ext - File extension (js/ts)
+ */
+export async function generateServer(answers, projectPath, ext) {
+  let serverContent;
+
+  const hasAuth = answers.includeAuth;
+  const hasLog = answers.includeLog;
+  const dbType = answers.database;
+  const language = answers.language;
+
+  // Common imports
+  const imports = language === 'TypeScript'
     ? `
-    import express from "express";
-    import dotenv from "dotenv";
-    import helmet from "helmet";
-    import cors from "cors";
-
-    dotenv.config();
-    const app = express();
-    const PORT = process.env.PORT || 3000;
-
-    app.use(express.json());
-    app.use(helmet());
-    app.use(cors());
-
-    app.get("/", (req, res) => {
-      res.send("🚀 Welcome to your Type-3 generated backend!");
-    });
-
-    app.listen(PORT, () => {
-      console.log(\`✅ Server is running on http://localhost:\${PORT}\`);
-    });
-    `
+import express, { Request, Response, NextFunction } from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+${hasLog ? 'import logger from "./utils/logger";' : ''}
+${dbType !== 'None' ? 'import "./config/dbConfig";' : ''}
+import userRoutes from './routes/user.routes';
+${hasAuth ? 'import authMiddleware from "./middleware/auth.middleware";' : ''}
+    `.trim()
     : `
-    const express = require("express");
-    const dotenv = require("dotenv");
-    const helmet = require("helmet");
-    const cors = require("cors");
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+${hasLog ? 'const logger = require("./utils/logger");' : ''}
+const dbConnection = ${dbType !== 'None' ? 'require("./config/dbConfig");' : ''}
+const userRoutes = require('./routes/user.routes');
+${hasAuth ? 'const authMiddleware = require("./middleware/auth.middleware");' : ''}
+    `.trim();
 
-    dotenv.config();
-    const app = express();
-    const PORT = process.env.PORT || 3000;
+  // Logging setup
+  const loggingSetup = hasLog ? `
+// Logging configuration
+${language === 'TypeScript' 
+  ? 'import morganMiddleware from "./utils/morganMiddleware";'
+  : 'const morganMiddleware = require("./utils/morganMiddleware");'
+}
+app.use(morganMiddleware);
+  ` : '';
 
-    app.use(express.json());
-    app.use(helmet());
-    app.use(cors());
+  // Error handling middleware
+  const errorHandling = language === 'TypeScript'
+    ? `
+// Error handling middleware
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  logger.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+    `.trim()
+    : `
+// Error handling middleware
+app.use((err, req, res, next) => {
+  logger.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+    `.trim();
 
-    app.get("/", (req, res) => {
-      res.send("🚀 Welcome to your Type-3 generated backend!");
-    });
+  // Main server content
+  serverContent = language === 'TypeScript'
+    ? `
+${imports}
 
-    app.listen(PORT, () => {
-      console.log(\`✅ Server is running on http://localhost:\${PORT}\`);
-    });
-    `;
+dotenv.config();
 
-  await fs.writeFile(path.join(projectPath, `src/server.${ext}`), serverContent);
+const app = express();
+
+// Middleware setup
+app.use(cors());
+app.use(helmet());
+app.use(express.json());
+app.use(cookieParser());
+
+${loggingSetup}
+
+//getting database connected
+dbConnection();
+
+// Routes setup
+app.use('/api', userRoutes);
+
+// Health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'UP' });
+});
+
+${errorHandling}
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: 'Not Found' });
+});
+
+// Server activation
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(\`Server running on port \${PORT}\`);
+  ${dbType !== 'None' ? 'console.log("Database connected successfully");' : ''}
+});
+    `.trim()
+    : `
+${imports}
+
+dotenv.config();
+
+const app = express();
+
+// Middleware setup
+app.use(cors());
+app.use(helmet());
+app.use(express.json());
+app.use(cookieParser());
+
+${loggingSetup}
+
+// Routes setup
+app.use('/api', userRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'UP' });
+});
+
+${errorHandling}
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not Found' });
+});
+
+// Server activation
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(\`Server running on port \${PORT}\`);
+  ${dbType !== 'None' ? 'console.log("Database connected successfully");' : ''}
+});
+    `.trim();
+
+  // Create server file
+  await fs.writeFile(
+    path.join(projectPath, `src/server.${ext}`),
+    serverContent
+  );
 }
