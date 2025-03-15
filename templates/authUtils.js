@@ -1,41 +1,69 @@
-export async function generateAuthUtils(answers, projectPath, ext) {
-  const authUtils = answers.language === "TypeScript"
+import fs from "fs-extra";
+import path from "path";
+
+/**
+ * Generates authentication middleware based on project configuration
+ * @param {Object} answers - User configuration object
+ * @param {string} projectPath - Project root directory path
+ * @param {string} ext - File extension (js/ts)
+ */
+export async function generateAuthMiddleware(answers, projectPath, ext) {
+  if (!answers.includeAuth) return;
+
+  const middlewarePath = path.join(projectPath, 'src/middleware');
+  await fs.ensureDir(middlewarePath);
+
+  const content = answers.language === 'TypeScript'
     ? `
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 
-export const generateToken = (userId: string): string => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET as string, { expiresIn: "1h" });
-};
+interface AuthenticatedRequest extends Request {
+  user?: { id: string };
+}
 
-export const hashPassword = async (password: string): Promise<string> => {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(password, salt);
-};
+export default function authMiddleware(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
 
-export const comparePassword = async (password: string, hashedPassword: string): Promise<boolean> => {
-  return bcrypt.compare(password, hashedPassword);
-};
-`
+  if (!token) {
+    return res.status(401).json({ error: 'Access denied. No token provided.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid or expired token.' });
+  }
+}
+    `.trim()
     : `
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+const jwt = require('jsonwebtoken');
 
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+module.exports = function authMiddleware(req, res, next) {
+  const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access denied. No token provided.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid or expired token.' });
+  }
 };
+    `.trim();
 
-const hashPassword = async (password) => {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(password, salt);
-};
-
-const comparePassword = async (password, hashedPassword) => {
-  return bcrypt.compare(password, hashedPassword);
-};
-
-module.exports = { generateToken, hashPassword, comparePassword };
-`;
-
-  await fs.writeFile(path.join(projectPath, `src/utils/auth.utils.${ext}`), authUtils);
+  await fs.writeFile(
+    path.join(middlewarePath, `auth.middleware.${ext}`),
+    content
+  );
 }
