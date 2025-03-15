@@ -2,49 +2,113 @@ import fs from "fs-extra";
 import path from "path";
 
 export async function generateDbConfig(answers, projectPath, ext) {
-  const dbConfig = answers.language === "TypeScript"
-    ? `
-    import mongoose from "mongoose";
-    import { Sequelize } from "sequelize";
+  let configContent;
 
-    const db = {};
+  if (answers.database === "None") {
+    // No database configuration
+    configContent =
+      answers.language === "TypeScript"
+        ? `// No database configuration\nconst db = {};\n\nexport default db;`
+        : `// No database configuration\nconst db = {};\n\nmodule.exports = db;`;
+  }
+  else if (answers.database === "MongoDB") {
+    // MongoDB configuration
+    configContent =
+      answers.language === "TypeScript"
+        ? `
+import mongoose from "mongoose";
 
-    if (process.env.DB_URL.startsWith("mongodb")) {
-      mongoose.connect(process.env.DB_URL, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
-      db.connection = mongoose.connection;
-    } else {
-      const sequelize = new Sequelize(process.env.DB_URL, {
-        dialect: process.env.DB_URL.includes("mysql") ? "mysql" : "postgres",
-      });
-      db.connection = sequelize;
+const dbConnection = async () => {
+  try {
+    if (!process.env.DB_URL) {
+      throw new Error("DB_URL environment variable is not defined");
     }
+    
+    await mongoose.connect(process.env.DB_URL);
+    console.log("Database connected successfully");
+  } catch (err) {
+    console.error("Error connecting to database:", err);
+    process.exit(1);
+  }
+};
 
-    export default db;
-    `
-    : `
-    const mongoose = require("mongoose");
-    const { Sequelize } = require("sequelize");
+export default dbConnection;
+`.trim()
+        : `
+const mongoose = require("mongoose");
 
-    const db = {};
-
-    if (process.env.DB_URL.startsWith("mongodb")) {
-      mongoose.connect(process.env.DB_URL, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
-      db.connection = mongoose.connection;
-    } else {
-      const sequelize = new Sequelize(process.env.DB_URL, {
-        dialect: process.env.DB_URL.includes("mysql") ? "mysql" : "postgres",
-      });
-      db.connection = sequelize;
+const dbConnection = async () => {
+  try {
+    if (!process.env.DB_URL) {
+      throw new Error("DB_URL environment variable is not defined");
     }
+    
+    await mongoose.connect(process.env.DB_URL);
+    console.log("Database connected successfully");
+  } catch (err) {
+    console.error("Error connecting to database:", err);
+    process.exit(1);
+  }
+};
 
-    module.exports = db;
-    `;
+module.exports = dbConnection;
+`.trim();
+  }
+  else {
+    // SQL configuration (MySQL/PostgreSQL)
+    const dialect = answers.database.toLowerCase();
+    configContent =
+      answers.language === "TypeScript"
+        ? `
+import { Sequelize } from "sequelize";
 
-  await fs.writeFile(path.join(projectPath, `src/config/dbConfig.${ext}`), dbConfig);
+const sequelize = new Sequelize(process.env.DB_URL);
+
+const db = {
+  connection: sequelize,
+};
+
+// Test database connection
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Database connection established");
+  } catch (error) {
+    console.error("Unable to connect to database:", error);
+    process.exit(1);
+  }
+})();
+
+export default db;
+`.trim()
+        : `
+const { Sequelize } = require("sequelize");
+
+const sequelize = new Sequelize(process.env.DB_URL);
+
+const db = {
+  connection: sequelize,
+};
+
+// Test database connection
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Database connection established");
+  } catch (error) {
+    console.error("Unable to connect to database:", error);
+    process.exit(1);
+  }
+})();
+
+module.exports = db;
+`.trim();
+  }
+
+  // Write configuration file
+  await fs.ensureDir(path.join(projectPath, "src/config"));
+  await fs.writeFile(
+    path.join(projectPath, `src/config/dbConfig.${ext}`),
+    configContent
+  );
 }
