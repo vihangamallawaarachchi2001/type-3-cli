@@ -15,28 +15,24 @@ export async function generateController(answers, projectPath, ext) {
     controllerContent = answers.language === 'TypeScript'
       ? `
 import { Request, Response } from 'express';
-import { HelloService } from '../services/user.service';
+import { getMessage } from '../services/user.service';
 
-export class HelloController {
-  static getMessage(req: Request, res: Response) {
-    const name = req.query.name as string;
-    const message = HelloService.getMessage(name);
-    res.status(200).json({ message });
-  }
-}
+export const getMessage = (req: Request, res: Response) => {
+  const name = req.query.name as string;
+  const message = getMessage(name);
+  res.status(200).json({ message });
+};
       `.trim()
       : `
-const HelloService = require('../services/user.service');
+const { getMessage } = require('../services/user.service');
 
-class HelloController {
-  static getMessage(req, res) {
-    const name = req.query.name;
-    const message = HelloService.getMessage(name);
-    res.status(200).json({ message });
-  }
-}
+const getMessage = (req, res) => {
+  const name = req.query.name;
+  const message = getMessage(name);
+  res.status(200).json({ message });
+};
 
-module.exports = HelloController;
+module.exports = { getMessage };
       `.trim();
   } 
   // Database-specific implementations
@@ -61,62 +57,66 @@ module.exports = HelloController;
  */
 function generateTypeScriptController(answers) {
   const authRoutes = answers.includeAuth ? `
-  static async register(req: Request, res: Response) {
-    const { username, email, password } = req.body;
-    const result = await UserService.register(username, email, password);
-    result.success 
-      ? res.status(201).json(result.data)
-      : res.status(400).json({ error: result.error });
-  }
+export const register = async (req: Request, res: Response) => {
+  const { username, email, password } = req.body;
+  const result = await UserService.register(username, email, password);
+  result.success 
+    ? res.status(201).json(result.data)
+    : res.status(400).json({ error: result.error });
+};
 
-  static async login(req: Request, res: Response) {
-    const { email, password } = req.body;
-    const result = await UserService.login(email, password);
-    result.success 
-      ? res.status(200).json(result.data)
-      : res.status(401).json({ error: result.error });
-  }
-  ` : '';
+export const login = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const result = await UserService.login(email, password);
+  result.success 
+    ? res.status(200).json(result.data)
+    : res.status(401).json({ error: result.error });
+};
+` : '';
 
   return `
 import { Request, Response } from 'express';
-import { UserService, UserServiceResponse } from '../services/user.service';
+import { 
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  ${answers.includeAuth ? 'register, login,' : ''}
+} from '../services/user.service';
 
-export class UserController {
-  ${authRoutes}
+${authRoutes}
 
-  static async getAllUsers(req: Request, res: Response) {
-    const result: UserServiceResponse = await UserService.getAllUsers();
-    result.success 
-      ? res.status(200).json(result.data)
-      : res.status(500).json({ error: result.error });
-  }
+export const getAllUsersController = async (req: Request, res: Response) => {
+  const result = await getAllUsers();
+  result.success 
+    ? res.status(200).json(result.data)
+    : res.status(500).json({ error: result.error });
+};
 
-  static async getUserById(req: Request, res: Response) {
-    const { id } = req.params;
-    const result: UserServiceResponse = await UserService.getUserById(id);
-    result.success 
-      ? res.status(200).json(result.data)
-      : res.status(404).json({ error: result.error });
-  }
+export const getUserByIdController = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await getUserById(id);
+  result.success 
+    ? res.status(200).json(result.data)
+    : res.status(404).json({ error: result.error });
+};
 
-  static async updateUser(req: Request, res: Response) {
-    const { id } = req.params;
-    const data = req.body;
-    const result: UserServiceResponse = await UserService.updateUser(id, data);
-    result.success 
-      ? res.status(200).json(result.data)
-      : res.status(400).json({ error: result.error });
-  }
+export const updateUserController = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const data = req.body;
+  const result = await updateUser(id, data);
+  result.success 
+    ? res.status(200).json(result.data)
+    : res.status(400).json({ error: result.error });
+};
 
-  static async deleteUser(req: Request, res: Response) {
-    const { id } = req.params;
-    const result: UserServiceResponse = await UserService.deleteUser(id);
-    result.success 
-      ? res.status(204).send()
-      : res.status(500).json({ error: result.error });
-  }
-}
+export const deleteUserController = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await deleteUser(id);
+  result.success 
+    ? res.status(204).send()
+    : res.status(500).json({ error: result.error });
+};
   `.trim();
 }
 
@@ -127,62 +127,72 @@ export class UserController {
  */
 function generateJavaScriptController(answers) {
   const authRoutes = answers.includeAuth ? `
-  static async register(req, res) {
-    const { username, email, password } = req.body;
-    const result = await UserService.register(username, email, password);
-    result.success 
-      ? res.status(201).json(result.data)
-      : res.status(400).json({ error: result.error });
-  }
+const register = async (req, res) => {
+  const { username, email, password } = req.body;
+  const result = await UserService.register(username, email, password);
+  result.success 
+    ? res.status(201).json(result.data)
+    : res.status(400).json({ error: result.error });
+};
 
-  static async login(req, res) {
-    const { email, password } = req.body;
-    const result = await UserService.login(email, password);
-    result.success 
-      ? res.status(200).json(result.data)
-      : res.status(401).json({ error: result.error });
-  }
-  ` : '';
+const login = async (req, res) => {
+  const { email, password } = req.body;
+  const result = await UserService.login(email, password);
+  result.success 
+    ? res.status(200).json(result.data)
+    : res.status(401).json({ error: result.error });
+};
+` : '';
 
   return `
-const UserService = require('../services/user.service');
+const {
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  ${answers.includeAuth ? 'register, login,' : ''}
+} = require('../services/user.service');
 
-class UserController {
-  ${authRoutes}
+${authRoutes}
 
-  static async getAllUsers(req, res) {
-    const result = await UserService.getAllUsers();
-    result.success 
-      ? res.status(200).json(result.data)
-      : res.status(500).json({ error: result.error });
-  }
+const getAllUsersController = async (req, res) => {
+  const result = await getAllUsers();
+  result.success 
+    ? res.status(200).json(result.data)
+    : res.status(500).json({ error: result.error });
+};
 
-  static async getUserById(req, res) {
-    const { id } = req.params;
-    const result = await UserService.getUserById(id);
-    result.success 
-      ? res.status(200).json(result.data)
-      : res.status(404).json({ error: result.error });
-  }
+const getUserByIdController = async (req, res) => {
+  const { id } = req.params;
+  const result = await getUserById(id);
+  result.success 
+    ? res.status(200).json(result.data)
+    : res.status(404).json({ error: result.error });
+};
 
-  static async updateUser(req, res) {
-    const { id } = req.params;
-    const data = req.body;
-    const result = await UserService.updateUser(id, data);
-    result.success 
-      ? res.status(200).json(result.data)
-      : res.status(400).json({ error: result.error });
-  }
+const updateUserController = async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  const result = await updateUser(id, data);
+  result.success 
+    ? res.status(200).json(result.data)
+    : res.status(400).json({ error: result.error });
+};
 
-  static async deleteUser(req, res) {
-    const { id } = req.params;
-    const result = await UserService.deleteUser(id);
-    result.success 
-      ? res.status(204).send()
-      : res.status(500).json({ error: result.error });
-  }
-}
+const deleteUserController = async (req, res) => {
+  const { id } = req.params;
+  const result = await deleteUser(id);
+  result.success 
+    ? res.status(204).send()
+    : res.status(500).json({ error: result.error });
+};
 
-module.exports = UserController;
+module.exports = {
+  ${answers.includeAuth ? 'register, login,' : ''}
+  getAllUsersController,
+  getUserByIdController,
+  updateUserController,
+  deleteUserController
+};
   `.trim();
 }
