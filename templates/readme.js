@@ -45,7 +45,7 @@ ${generateFeatureList(answers)}
 cd ${projectName}
 
 # Install dependencies
-${packageManager} install
+${packageManager} install (already installed on setup)
 \`\`\`
 
 ### Configuration
@@ -60,7 +60,7 @@ ${includeAuth ? 'JWT_SECRET=your-secret-key' : ''}
 ## Usage
 \`\`\`bash
 # Start development server
-${packageManager} start
+${packageManager} run dev
 
 # Production build ${language === 'TypeScript' ? '(TypeScript projects)' : ''}
 ${packageManager} build
