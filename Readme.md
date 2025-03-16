@@ -78,26 +78,30 @@ This will prompt you to answer a series of questions about your project configur
 ### **2. Example Workflow**
 
 ```bash
-type-3 init my-api
+type-3 init
 ```
 
 #### Prompts:
-1. **Programming Language**:
+
+1. **Project Name**
+   - my-api
+  
+2. **Programming Language**:
    - TypeScript or JavaScript?
 
-2. **Database**:
+3. **Database**:
    - MongoDB, MySQL, PostgreSQL, or None?
 
-3. **Authentication**:
+4. **Authentication**:
    - Include JWT-based authentication? (Yes/No)
 
-4. **Logging**:
+5. **Logging**:
    - Include logging utilities? (Yes/No)
 
-5. **Package Manager**:
+6. **Package Manager**:
    - npm, yarn, or pnpm?
 
-6. **Project Name**:
+7. **Project Name**:
    - Confirm the project name.
 
 Once you've answered all prompts, the CLI will generate the project structure and install dependencies automatically.
@@ -142,6 +146,12 @@ or
 
 ```bash
 yarn run dev
+```
+
+or
+
+```bash
+pnpm run dev
 ```
 
 The server will start on `http://localhost:3000` by default.
@@ -311,7 +321,7 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 For questions or feedback, feel free to reach out:
 
-- GitHub: [@vihangamallawaarachchi2001](https://github.com/vihangamallawaarachchi2001)
+- GitHub: [@vihangamallawaarachchi2001](https://github.com/vihangamallawaarachchi2001/type-3-cli)
 - Email: vihanganethusara00@gmail.com
 
 ---
