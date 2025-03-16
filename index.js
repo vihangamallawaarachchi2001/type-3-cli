@@ -16,7 +16,6 @@ const banner = figlet.textSync("TYPE-3", {
   whitespaceBreak: true,
 });
 
-// Output the banner in cyan color and a description in green.
 console.log(chalk.cyan(banner));
 
 /**

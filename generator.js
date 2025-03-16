@@ -14,7 +14,7 @@ import { generateTemplates } from "./templates/index.js";
  * dependencies based on the user's choices.
  */
 export async function initProject() {
-  // Handle user interruption gracefully
+  
   const handleInterrupt = () => {
     console.log(chalk.red("\n❌ Process interrupted. Cleaning up..."));
     process.exit(1);

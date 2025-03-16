@@ -2,18 +2,18 @@ import fs from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Corrected imports with proper function names
+
 import { generatePackageJson } from "./packageJson.js";
-import { generateServer } from "./server.js"; // Correct function name
-import { generateDotenv } from "./env.js"; // Corrected from generateDotenvFile
+import { generateServer } from "./server.js"; 
+import { generateDotenv } from "./env.js"; 
 import { generateGitignore } from "./gitignore.js";
 import { generateReadme } from "./readme.js";
 import { generateDbConfig } from "./dbConfig.js";
 import { generateAuthMiddleware } from "./authUtils.js";
 import { generateController } from "./controller.js";
-import { generateRouter } from "./route.js"; // Corrected from generateRoute
+import { generateRouter } from "./route.js"; 
 import { generateService } from "./service.js";
-import { generateUtils } from "./logger.js"; // Corrected from generateUtils
+import { generateUtils } from "./logger.js"; 
 import { generateUserModel } from "./model.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -21,7 +21,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export async function generateTemplates(answers, projectPath) {
   const ext = answers.language === "TypeScript" ? "ts" : "js";
 
-  // Directory creation optimized with Promise.all
   const dirs = [
     "src/config",
     "src/controllers",
@@ -51,7 +50,7 @@ export async function generateTemplates(answers, projectPath) {
   // Core file generation
   try {
     await generatePackageJson(answers, projectPath);
-    await generateDotenv(answers, projectPath); // Corrected function name
+    await generateDotenv(answers, projectPath); 
     await generateGitignore(answers, projectPath);
     await generateReadme(answers, projectPath);
     await generateDbConfig(answers, projectPath, ext);
@@ -64,7 +63,7 @@ export async function generateTemplates(answers, projectPath) {
 
     // Logging utilities
     if (answers.includeLog) {
-      await generateUtils(answers, projectPath, ext); // Corrected function name
+      await generateUtils(answers, projectPath, ext); 
     }
 
     // Authentication components
@@ -76,7 +75,7 @@ export async function generateTemplates(answers, projectPath) {
     await generateUserModel(answers, projectPath, ext);
     await generateService(answers, projectPath, ext);
     await generateController(answers, projectPath, ext);
-    await generateRouter(answers, projectPath, ext); // Corrected function name
+    await generateRouter(answers, projectPath, ext); 
 
     // Fallback for no database
     if (answers.database === "None") {
