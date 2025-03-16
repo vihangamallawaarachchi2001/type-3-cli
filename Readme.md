@@ -70,7 +70,7 @@ type-3 --version
 Run the following command to create a new project:
 
 ```bash
-type-3 init <project-name>
+type-3 init
 ```
 
 This will prompt you to answer a series of questions about your project configuration.
