@@ -5,7 +5,7 @@
 
 Type-3 CLI is a powerful command-line tool designed to scaffold backend applications with minimal effort. Whether you're building a simple API or a full-fledged application with authentication, database integration, and logging, Type-3 CLI has got you covered. It supports both **TypeScript** and **JavaScript**, works seamlessly with popular databases like MongoDB, MySQL, and PostgreSQL, and provides robust features for modern development workflows.
 
-> **Beta Release**: This is a beta version of the tool. Please report any bugs or issues on the [GitHub repository](https://github.com/your-repo-link).
+> **Beta Release**: This is a beta version of the tool. Please report any bugs or issues on the [GitHub repository](https://github.com/vihangamallawaarachchi2001/type-3-cli).
 
 ---
 
