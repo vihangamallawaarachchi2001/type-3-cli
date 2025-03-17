@@ -23,9 +23,9 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import dbConnection from './config/dbConfig';
 ${hasLog ? 'import logger from "./utils/logger";' : ''}
-${dbType !== 'None' ? 'import "./config/dbConfig";' : ''}
+${dbType !== 'None' ? 
+dbType === 'MongoDB' ? 'import dbConnection from "./config/dbConfig";' : 'import { dbConnection } from "./config/dbConfig";' : ''}
 import userRoutes from './routes/user.routes';
 ${hasAuth ? 'import authMiddleware from "./middleware/auth.middleware";' : ''}
     `.trim()
@@ -36,7 +36,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 ${hasLog ? 'const logger = require("./utils/logger");' : ''}
-const dbConnection = ${dbType !== 'None' ? 'require("./config/dbConfig");' : ''}
+${dbType !== 'None' ? dbType === 'MongoDB' ? 'const dbConnection = require("./config/dbConfig");' : 'const {dbConnection} = require("./config/dbConfig");' : ''}
 const userRoutes = require('./routes/user.routes');
 ${hasAuth ? 'const authMiddleware = require("./middleware/auth.middleware");' : ''}
     `.trim();
@@ -88,7 +88,10 @@ app.use(cookieParser());
 ${loggingSetup}
 
 //getting database connected
-dbConnection();
+${dbType !== 'None' && `
+(async () => {
+  await dbConnection();  
+})();`}
 
 // Routes setup
 app.use('/api', userRoutes);
@@ -127,7 +130,10 @@ app.use(cookieParser());
 ${loggingSetup}
 
 //getting database connected
-dbConnection()
+${dbType !== 'None' && `
+(async () => {
+  await dbConnection();  
+})();`}
 
 // Routes setup
 app.use('/api', userRoutes);
