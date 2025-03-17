@@ -23,6 +23,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import dbConnection from './config/dbConfig';
 ${hasLog ? 'import logger from "./utils/logger";' : ''}
 ${dbType !== 'None' ? 'import "./config/dbConfig";' : ''}
 import userRoutes from './routes/user.routes';
@@ -50,19 +51,21 @@ ${language === 'TypeScript'
 app.use(morganMiddleware);
   ` : '';
 
+  
+
   // Error handling middleware
   const errorHandling = language === 'TypeScript'
     ? `
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  logger.error(err.stack);
+  ${hasLog ? 'logger' : 'console'}.error(err.stack);
   res.status(500).json({ error: 'Internal Server Error' });
 });
     `.trim()
     : `
 // Error handling middleware
 app.use((err, req, res, next) => {
-  logger.error(err.stack);
+  ${hasLog ? 'logger' : 'console'}.error(err.stack);
   res.status(500).json({ error: 'Internal Server Error' });
 });
     `.trim();
@@ -106,7 +109,6 @@ app.use((req: Request, res: Response) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(\`Server running on port \${PORT}\`);
-  ${dbType !== 'None' ? 'console.log("Database connected successfully");' : ''}
 });
     `.trim()
     : `
@@ -123,6 +125,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 ${loggingSetup}
+
+//getting database connected
+dbConnection()
 
 // Routes setup
 app.use('/api', userRoutes);
@@ -143,7 +148,6 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(\`Server running on port \${PORT}\`);
-  ${dbType !== 'None' ? 'console.log("Database connected successfully");' : ''}
 });
     `.trim();
 

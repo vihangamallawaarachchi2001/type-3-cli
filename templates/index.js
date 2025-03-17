@@ -116,7 +116,7 @@ async function generateTsConfig(projectPath) {
     const tsConfig = {
       compilerOptions: {
         target: "ES2020",
-        module: "ESNext",
+        module: "CommonJS",
         strict: true,
         moduleResolution: "node",
         resolveJsonModule: true,

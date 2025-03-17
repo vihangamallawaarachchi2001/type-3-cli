@@ -57,17 +57,17 @@ module.exports = { getMessage };
  */
 function generateTypeScriptController(answers) {
   const authRoutes = answers.includeAuth ? `
-export const register = async (req: Request, res: Response) => {
+export const registerController = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
-  const result = await UserService.register(username, email, password);
+  const result = await register(username, email, password);
   result.success 
     ? res.status(201).json(result.data)
     : res.status(400).json({ error: result.error });
 };
 
-export const login = async (req: Request, res: Response) => {
+export const loginController = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  const result = await UserService.login(email, password);
+  const result = await login(email, password);
   result.success 
     ? res.status(200).json(result.data)
     : res.status(401).json({ error: result.error });
@@ -127,17 +127,17 @@ export const deleteUserController = async (req: Request, res: Response) => {
  */
 function generateJavaScriptController(answers) {
   const authRoutes = answers.includeAuth ? `
-const register = async (req, res) => {
+const registerController = async (req, res) => {
   const { username, email, password } = req.body;
-  const result = await UserService.register(username, email, password);
+  const result = await register(username, email, password);
   result.success 
     ? res.status(201).json(result.data)
     : res.status(400).json({ error: result.error });
 };
 
-const login = async (req, res) => {
+const loginController = async (req, res) => {
   const { email, password } = req.body;
-  const result = await UserService.login(email, password);
+  const result = await login(email, password);
   result.success 
     ? res.status(200).json(result.data)
     : res.status(401).json({ error: result.error });
@@ -188,7 +188,7 @@ const deleteUserController = async (req, res) => {
 };
 
 module.exports = {
-  ${answers.includeAuth ? 'register, login,' : ''}
+  ${answers.includeAuth ? 'registerController, loginController,' : ''}
   getAllUsersController,
   getUserByIdController,
   updateUserController,
