@@ -40,7 +40,7 @@ module.exports = User;
     userModel = answers.language === "TypeScript"
       ? `
 import { DataTypes, Model, Optional } from "sequelize";
-import db from "../config/dbConfig";
+const {sequelize} = require("../config/dbConfig");
 
 interface UserAttributes {
   id: number;
@@ -81,7 +81,7 @@ User.init(
     }
   },
   {
-    sequelize: db.connection,
+    sequelize,
     modelName: "User",
     tableName: "users",
     timestamps: true
@@ -92,7 +92,7 @@ export default User;
 `.trim()
       : `
 const { DataTypes, Model } = require("sequelize");
-const db = require("../config/dbConfig");
+const {sequelize} = require("../config/dbConfig");
 
 class User extends Model {}
 
@@ -118,7 +118,7 @@ User.init(
     }
   },
   {
-    sequelize: db.connection,
+    sequelize,
     modelName: "User",
     tableName: "users",
     timestamps: true

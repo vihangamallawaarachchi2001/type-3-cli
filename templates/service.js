@@ -14,16 +14,16 @@ export async function generateService(answers, projectPath, ext) {
   if (answers.database === 'None') {
     serviceContent = answers.language === 'TypeScript'
       ? `
-export const getMessage = (name?: string): string => {
+export const getMessageService = (name?: string): string => {
   return \`Hello, \${name || "world"}!\`;
 };
       `.trim()
       : `
-const getMessage = (name) => {
+const getMessageService = (name) => {
   return \`Hello, \${name || "world"}!\`;
 };
 
-module.exports = { getMessage };
+module.exports = { getMessageService };
       `.trim();
   } 
   // Database-specific implementations
@@ -67,7 +67,7 @@ export const register = async (username: string, email: string, password: string
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({ username, email, password: hashedPassword });
     return { success: true, data: user };
-  } catch (error) {
+  } catch (error: any) {
     return { success: false, error: error.message };
   }
 };
@@ -90,7 +90,7 @@ export const login = async (email: string, password: string): Promise<UserServic
     );
     
     return { success: true, data: { user, token } };
-  } catch (error) {
+  } catch (error: any) {
     return { success: false, error: error.message };
   }
 };
@@ -100,7 +100,7 @@ export const getAllUsers = async (): Promise<UserServiceResponse> => {
   try {
     const users = await ${dbType === 'MongoDB' ? 'User.find()' : 'User.findAll()'};
     return { success: true, data: users };
-  } catch (error) {
+  } catch (error: any) {
     return { success: false, error: error.message };
   }
 };
@@ -113,7 +113,7 @@ export const getUserById = async (id: string): Promise<UserServiceResponse> => {
     return user 
       ? { success: true, data: user } 
       : { success: false, error: 'User not found' };
-  } catch (error) {
+  } catch (error: any) {
     return { success: false, error: error.message };
   }
 };
@@ -127,7 +127,7 @@ export const updateUser = async (id: string, data: any): Promise<UserServiceResp
     return user 
       ? { success: true, data: user } 
       : { success: false, error: 'Update failed' };
-  } catch (error) {
+  } catch (error: any) {
     return { success: false, error: error.message };
   }
 };
@@ -138,7 +138,7 @@ export const deleteUser = async (id: string): Promise<UserServiceResponse> => {
       ? 'await User.findByIdAndDelete(id);' 
       : 'await User.destroy({ where: { id } });'}
     return { success: true };
-  } catch (error) {
+  } catch (error:any) {
     return { success: false, error: error.message };
   }
 };
