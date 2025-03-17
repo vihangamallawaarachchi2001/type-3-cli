@@ -14,16 +14,16 @@ export async function generateService(answers, projectPath, ext) {
   if (answers.database === 'None') {
     serviceContent = answers.language === 'TypeScript'
       ? `
-export const getMessage = (name?: string): string => {
+export const getMessageService = (name?: string): string => {
   return \`Hello, \${name || "world"}!\`;
 };
       `.trim()
       : `
-const getMessage = (name) => {
+const getMessageService = (name) => {
   return \`Hello, \${name || "world"}!\`;
 };
 
-module.exports = { getMessage };
+module.exports = { getMessageService };
       `.trim();
   } 
   // Database-specific implementations
