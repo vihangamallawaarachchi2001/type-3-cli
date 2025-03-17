@@ -61,15 +61,23 @@ module.exports = dbConnection;
       answers.language === "TypeScript"
         ? `
 import { Sequelize } from "sequelize";
+import dotenv from 'dotenv';
 
-const sequelize = new Sequelize(process.env.DB_URL);
+dotenv.config();
 
-const db = {
-  connection: sequelize,
-};
+const dbUrl = process.env.DB_URL;
 
-// Test database connection
-(async () => {
+if (!dbUrl) {
+  console.error("Database URL is missing in environment variables.");
+  process.exit(1); 
+}
+
+const sequelize = new Sequelize(dbUrl, {
+  dialect: ${answers.database === 'MySQL' ? `'mysql'` : `'postgres'`}, 
+  logging: false, 
+});
+
+const dbConnection = async (): Promise<void> => {
   try {
     await sequelize.authenticate();
     console.log("Database connection established");
@@ -77,21 +85,28 @@ const db = {
     console.error("Unable to connect to database:", error);
     process.exit(1);
   }
-})();
+};
 
-export default db;
+export { sequelize, dbConnection };
 `.trim()
         : `
 const { Sequelize } = require("sequelize");
+require('dotenv').config();
 
-const sequelize = new Sequelize(process.env.DB_URL);
+const dbUrl = process.env.DB_URL;
 
-const db = {
-  connection: sequelize,
-};
+if (!dbUrl) {
+  console.error("Database URL is missing in environment variables.");
+  process.exit(1); 
+}
 
-// Test database connection
-(async () => {
+const sequelize = new Sequelize(process.env.DB_URL || "", {
+  dialect: ${answers.database === 'MySQL' ? `'mysql'` : `'postgres'`}, 
+  logging: false,
+});
+
+
+const dbConnection = async () => {
   try {
     await sequelize.authenticate();
     console.log("Database connection established");
@@ -99,9 +114,9 @@ const db = {
     console.error("Unable to connect to database:", error);
     process.exit(1);
   }
-})();
+};
 
-module.exports = db;
+module.exports = { sequelize, dbConnection };
 `.trim();
   }
 

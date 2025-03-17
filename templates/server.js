@@ -24,7 +24,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 ${hasLog ? 'import logger from "./utils/logger";' : ''}
-${dbType !== 'None' ? 'import "./config/dbConfig";' : ''}
+${dbType !== 'None' ? 
+dbType === 'MongoDB' ? 'import dbConnection from "./config/dbConfig";' : 'import { dbConnection } from "./config/dbConfig";' : ''}
 import userRoutes from './routes/user.routes';
 ${hasAuth ? 'import authMiddleware from "./middleware/auth.middleware";' : ''}
     `.trim()
@@ -35,7 +36,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 ${hasLog ? 'const logger = require("./utils/logger");' : ''}
-const dbConnection = ${dbType !== 'None' ? 'require("./config/dbConfig");' : ''}
+${dbType !== 'None' ? dbType === 'MongoDB' ? 'const dbConnection = require("./config/dbConfig");' : 'const {dbConnection} = require("./config/dbConfig");' : ''}
 const userRoutes = require('./routes/user.routes');
 ${hasAuth ? 'const authMiddleware = require("./middleware/auth.middleware");' : ''}
     `.trim();
@@ -50,19 +51,21 @@ ${language === 'TypeScript'
 app.use(morganMiddleware);
   ` : '';
 
+  
+
   // Error handling middleware
   const errorHandling = language === 'TypeScript'
     ? `
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  logger.error(err.stack);
+  ${hasLog ? 'logger' : 'console'}.error(err.stack);
   res.status(500).json({ error: 'Internal Server Error' });
 });
     `.trim()
     : `
 // Error handling middleware
 app.use((err, req, res, next) => {
-  logger.error(err.stack);
+  ${hasLog ? 'logger' : 'console'}.error(err.stack);
   res.status(500).json({ error: 'Internal Server Error' });
 });
     `.trim();
@@ -85,7 +88,10 @@ app.use(cookieParser());
 ${loggingSetup}
 
 //getting database connected
-dbConnection();
+${dbType !== 'None' && `
+(async () => {
+  await dbConnection();  
+})();`}
 
 // Routes setup
 app.use('/api', userRoutes);
@@ -106,7 +112,6 @@ app.use((req: Request, res: Response) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(\`Server running on port \${PORT}\`);
-  ${dbType !== 'None' ? 'console.log("Database connected successfully");' : ''}
 });
     `.trim()
     : `
@@ -123,6 +128,12 @@ app.use(express.json());
 app.use(cookieParser());
 
 ${loggingSetup}
+
+//getting database connected
+${dbType !== 'None' && `
+(async () => {
+  await dbConnection();  
+})();`}
 
 // Routes setup
 app.use('/api', userRoutes);
@@ -143,7 +154,6 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(\`Server running on port \${PORT}\`);
-  ${dbType !== 'None' ? 'console.log("Database connected successfully");' : ''}
 });
     `.trim();
 

@@ -116,7 +116,7 @@ export async function initProject() {
       "nodemon",
       "eslint",
       ...(answers.language === "TypeScript"
-        ? ["typescript", "ts-node", "@types/node", "@types/express"]
+        ? ["typescript", "ts-node", "@types/node", "@types/express", "@types/cors", "@types/cookie-parser", "@types/jsonwebtoken", "@types/morgan", "@types/sequelize"]
         : []),
     ];
 

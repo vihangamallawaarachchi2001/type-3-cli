@@ -15,11 +15,11 @@ export async function generateRouter(answers, projectPath, ext) {
     routerContent = answers.language === 'TypeScript'
       ? `
 import express from 'express';
-import { HelloController } from '../controllers/user.controller';
+import { getMessage } from '../controllers/user.controller';
 
 const router = express.Router();
 
-router.get('/hello', HelloController.getMessage);
+router.get('/hello', getMessage);
 
 export default router;
       `.trim()
@@ -59,23 +59,23 @@ function generateTypeScriptRouter(answers) {
     `import authMiddleware from '../middleware/auth.middleware';` : '';
   
   const authRoutes = answers.includeAuth ? `
-  router.post('/register', UserController.register);
-  router.post('/login', UserController.login);
+  router.post('/register', registerController);
+  router.post('/login', loginController);
   ` : '';
 
   return `
 import express from 'express';
-import { UserController } from '../controllers/user.controller';
-${authMiddleware}
+import { getAllUsersController,getUserByIdController,loginController,registerController,deleteUserController,updateUserController} from '../controllers/user.controller'
+import authMiddleware from '../middleware/auth.middleware';
 
 const router = express.Router();
 
 ${authRoutes}
 
-router.get('/users', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.getAllUsers);
-router.get('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.getUserById);
-router.put('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.updateUser);
-router.delete('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.deleteUser);
+router.get('/users', ${answers.includeAuth ? 'authMiddleware,' : ''} getAllUsersController);
+router.get('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} getUserByIdController);
+router.put('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} updateUserController);
+router.delete('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} deleteUserController);
 
 export default router;
   `.trim();
@@ -91,8 +91,8 @@ function generateJavaScriptRouter(answers) {
     `const authMiddleware = require('../middleware/auth.middleware');` : '';
   
   const authRoutes = answers.includeAuth ? `
-  router.post('/register', UserController.register);
-  router.post('/login', UserController.login);
+  router.post('/register', UserController.registerController);
+  router.post('/login', UserController.loginController);
   ` : '';
 
   return `
@@ -104,10 +104,10 @@ const router = express.Router();
 
 ${authRoutes}
 
-router.get('/users', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.getAllUsers);
-router.get('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.getUserById);
-router.put('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.updateUser);
-router.delete('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.deleteUser);
+router.get('/users', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.getAllUsersController);
+router.get('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.getUserByIdController);
+router.put('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.updateUserController);
+router.delete('/users/:id', ${answers.includeAuth ? 'authMiddleware,' : ''} UserController.deleteUserController);
 
 module.exports = router;
   `.trim();
