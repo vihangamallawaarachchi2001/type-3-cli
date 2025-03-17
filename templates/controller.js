@@ -15,20 +15,20 @@ export async function generateController(answers, projectPath, ext) {
     controllerContent = answers.language === 'TypeScript'
       ? `
 import { Request, Response } from 'express';
-import { getMessage } from '../services/user.service';
+import { getMessageService } from '../services/user.service';
 
 export const getMessage = (req: Request, res: Response) => {
   const name = req.query.name as string;
-  const message = getMessage(name);
+  const message = getMessageService(name);
   res.status(200).json({ message });
 };
       `.trim()
       : `
-const { getMessage } = require('../services/user.service');
+const { getMessageService } = require('../services/user.service');
 
 const getMessage = (req, res) => {
   const name = req.query.name;
-  const message = getMessage(name);
+  const message = getMessageService(name);
   res.status(200).json({ message });
 };
 
